@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VoiceNote — Comic Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --ink: #1a1a2e;
+  --yellow: #FFE135;
+  --blue: #4ECDC4;
+  --red: #FF6B6B;
+  --purple: #C77DFF;
+  --orange: #FF9F43;
+  --green: #26de81;
+  --white: #FFFEF0;
+  --panel-bg: #FFFEF0;
+  --border: 3px solid #1a1a2e;
+  --shadow: 4px 4px 0px #1a1a2e;
+  --shadow-lg: 6px 6px 0px #1a1a2e;
+}
+
+body {
+  font-family: 'Comic Neue', cursive;
+  background: var(--yellow);
+  background-image: 
+    radial-gradient(circle, #1a1a2e 1px, transparent 1px);
+  background-size: 24px 24px;
+  min-height: 100vh;
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+/* HEADER */
+.header {
+  background: var(--ink);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 4px solid var(--yellow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: 'Bangers', cursive;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--yellow);
+  text-shadow: 2px 2px 0 var(--red);
+}
+
+.logo span { color: var(--blue); text-shadow: 2px 2px 0 #1a1a2e; }
+
+.xp-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.xp-label {
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  color: var(--yellow);
+  letter-spacing: 1px;
+}
+
+.xp-bar {
+  width: 100px;
+  height: 14px;
+  background: #333;
+  border-radius: 2px;
+  border: 2px solid var(--yellow);
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+  width: 0%;
+  transition: width 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+.settings-btn {
+  background: var(--yellow);
+  border: var(--border);
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.1s;
+}
+.settings-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #1a1a2e; }
+
+/* MAIN */
+.main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* COMIC PANEL */
+.panel {
+  background: var(--panel-bg);
+  border: var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.panel-header {
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: 'Bangers', cursive;
+  font-size: 15px;
+  letter-spacing: 2px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* RECORD AREA */
+.record-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 28px;
+  gap: 16px;
+  position: relative;
+}
+
+/* POW burst behind button */
+.burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  width: 180px; height: 180px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.burst.active { opacity: 1; }
+
+.burst-shape {
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  animation: burst-pulse 0.4s ease-in-out infinite alternate;
+}
+@keyframes burst-pulse { from{transform:scale(1) rotate(0deg)} to{transform:scale(1.08) rotate(5deg)} }
+
+.burst-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bangers', cursive;
+  font-size: 28px;
+  color: var(--white);
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+/* Record button */
+.record-btn {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  border: 4px solid var(--ink);
+  background: var(--blue);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 6px 6px 0 var(--ink);
+  transition: all 0.1s;
+  position: relative;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+}
+.record-btn:active, .record-btn.recording {
+  transform: translate(3px,3px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.record-btn.recording { background: var(--red); }
+
+.record-btn svg { transition: all 0.2s; }
+
+/* Waveform */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.waveform.active { opacity: 1; }
+.wbar {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  animation: wv 0.5s ease-in-out infinite;
+}
+@keyframes wv { 0%,100%{height:5px} 50%{height:28px} }
+.wbar:nth-child(1){background:var(--red);animation-delay:0s}
+.wbar:nth-child(2){background:var(--blue);animation-delay:.07s}
+.wbar:nth-child(3){background:var(--purple);animation-delay:.14s}
+.wbar:nth-child(4){background:var(--orange);animation-delay:.21s}
+.wbar:nth-child(5){background:var(--green);animation-delay:.28s}
+.wbar:nth-child(6){background:var(--red);animation-delay:.21s}
+.wbar:nth-child(7){background:var(--blue);animation-delay:.14s}
+.wbar:nth-child(8){background:var(--purple);animation-delay:.07s}
+.wbar:nth-child(9){background:var(--orange);animation-delay:0s}
+
+.record-label {
+  font-family: 'Bangers', cursive;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+
+.timer {
+  font-family: 'Bangers', cursive;
+  font-size: 18px;
+  color: var(--red);
+  letter-spacing: 2px;
+  min-height: 24px;
+}
+
+/* STATUS BUBBLE */
+.status-bubble {
+  background: var(--purple);
+  border: var(--border);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--white);
+  box-shadow: var(--shadow);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+.status-bubble:empty { opacity: 0; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--white); animation: pulse 0.8s infinite; }
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+/* TRANSCRIPT — comic speech bubbles */
+.transcript-area {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  font-family: 'Bangers', cursive;
+  font-size: 20px;
+  color: #aaa;
+  letter-spacing: 1px;
+}
+
+.bubble-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.bubble-row.right { flex-direction: row-reverse; }
+
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: var(--shadow);
+  position: relative;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Speech tail */
+.bubble-row:not(.right) .bubble::before {
+  content: '';
+  position: absolute;
+  left: -12px; bottom: 12px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-right: 12px solid var(--ink);
+  border-bottom: 8px solid transparent;
+}
+.bubble-row.right .bubble::before {
+  content: '';
+  position: absolute;
+  right: -12px; bottom: 12px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-left: 12px solid var(--ink);
+  border-bottom: 8px solid transparent;
+}
+
+.speaker-name {
+  font-family: 'Bangers', cursive;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+/* Speaker colors */
+.spk-0 .avatar { background: var(--blue); }
+.spk-0 .bubble { background: #E3F8FF; }
+.spk-1 .avatar { background: var(--red); }
+.spk-1 .bubble { background: #FFE8E8; }
+.spk-2 .avatar { background: var(--green); }
+.spk-2 .bubble { background: #E8FFF0; }
+.spk-3 .avatar { background: var(--purple); }
+.spk-3 .bubble { background: #F5E8FF; }
+.spk-4 .avatar { background: var(--orange); }
+.spk-4 .bubble { background: #FFF4E8; }
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: var(--border);
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: var(--border);
+  border-radius: 6px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: 'Bangers', cursive;
+  font-size: 15px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: all 0.1s;
+}
+.action-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #1a1a2e; }
+.action-btn.green { background: var(--green); }
+.action-btn.blue { background: var(--blue); }
+
+/* ACHIEVEMENTS */
+.achievements {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: var(--panel-bg);
+  border: var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Bangers', cursive;
+  font-size: 13px;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.3;
+  transition: all 0.4s;
+}
+.badge.unlocked {
+  opacity: 1;
+  animation: badge-pop 0.4s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes badge-pop { from{transform:scale(0)} to{transform:scale(1)} }
+
+/* STATS */
+.stats-row {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+}
+.stat-box {
+  flex: 1;
+  background: var(--panel-bg);
+  border: var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-num {
+  font-family: 'Bangers', cursive;
+  font-size: 28px;
+  color: var(--red);
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* API PANEL */
+.api-panel {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+.api-panel.visible { display: flex; }
+.api-label { font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 1px; }
+.api-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: var(--border);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  background: #f9f9f9;
+  outline: none;
+}
+.api-save {
+  padding: 10px;
+  border: var(--border);
+  border-radius: 6px;
+  background: var(--green);
+  font-family: 'Bangers', cursive;
+  font-size: 18px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--yellow);
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: all 0.25s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 999;
+  border: 2px solid var(--yellow);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* HALFTONE overlay on header */
+.header::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Voice<span>POW!</span></div>
+  <div class="xp-bar-wrap">
+    <div class="xp-label">XP</div>
+    <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+    <div class="xp-label" id="xpNum">0</div>
+  </div>
+  <button class="settings-btn" id="btnSettings">⚙️</button>
+</div>
+
+<div class="main">
+
+  <!-- API Panel -->
+  <div class="panel" id="apiPanelWrap" style="display:none">
+    <div class="panel-header">🔑 API KEY</div>
+    <div class="api-panel visible" id="apiPanel">
+      <div class="api-label">Anthropic API Key</div>
+      <input type="password" class="api-input" id="apiInput" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"/>
+      <button class="api-save" id="apiSave">💾 SAVE KEY!</button>
+      <div style="font-size:11px;color:#888">Stored only on this device · console.anthropic.com</div>
+    </div>
+  </div>
+
+  <!-- Record Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>🎙️ MISSION CONTROL</span>
+      <span id="recStatus">READY</span>
+    </div>
+    <div class="record-area">
+      <div class="burst" id="burst">
+        <div class="burst-shape"></div>
+        <div class="burst-text" id="burstText">REC!</div>
+      </div>
+      <button class="record-btn" id="btnRecord">
+        <svg id="iconMic" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <svg id="iconStop" width="32" height="32" viewBox="0 0 24 24" fill="#1a1a2e" style="display:none">
+          <rect x="4" y="4" width="16" height="16" rx="3"/>
+        </svg>
+      </button>
+
+      <div class="waveform" id="waveform">
+        <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+        <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+        <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+      </div>
+
+      <div class="record-label" id="recordLabel">TAP TO RECORD!</div>
+      <div class="timer" id="timer"></div>
+    </div>
+
+    <div style="display:flex;justify-content:center;padding:0 16px 16px">
+      <div class="status-bubble" id="statusBubble"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="panel">
+    <div class="panel-header">📊 STATS</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num" id="statRecordings">0</div>
+        <div class="stat-label">Recordings</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statSpeakers">0</div>
+        <div class="stat-label">Speakers</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statWords">0</div>
+        <div class="stat-label">Words</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements -->
+  <div class="panel">
+    <div class="panel-header">🏆 ACHIEVEMENTS</div>
+    <div style="padding:14px 16px">
+      <div class="achievements" id="achievements">
+        <div class="badge" id="badge-first">🎙️ FIRST WORDS</div>
+        <div class="badge" id="badge-duo">👥 DUO DETECTED</div>
+        <div class="badge" id="badge-crew">🎭 FULL CREW</div>
+        <div class="badge" id="badge-wordsmith">📝 WORDSMITH</div>
+        <div class="badge" id="badge-pro">⚡ PRO RECORDER</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transcript -->
+  <div class="panel" id="transcriptPanel" style="display:none">
+    <div class="panel-header">
+      <span>💬 TRANSCRIPT</span>
+      <span id="speakerCount"></span>
+    </div>
+    <div class="transcript-area" id="transcriptArea">
+      <div class="empty-state">YOUR CONVERSATION WILL APPEAR HERE...</div>
+    </div>
+    <div class="actions">
+      <button class="action-btn green" id="btnCopy">📋 COPY ALL</button>
+      <button class="action-btn blue" id="btnClear">🗑️ CLEAR</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var btnRecord   = document.getElementById('btnRecord');
+var btnSettings = document.getElementById('btnSettings');
+var btnCopy     = document.getElementById('btnCopy');
+var btnClear    = document.getElementById('btnClear');
+var apiPanelWrap= document.getElementById('apiPanelWrap');
+var apiInput    = document.getElementById('apiInput');
+var apiSave     = document.getElementById('apiSave');
+var recordLabel = document.getElementById('recordLabel');
+var waveform    = document.getElementById('waveform');
+var timer       = document.getElementById('timer');
+var statusBubble= document.getElementById('statusBubble');
+var transcriptPanel = document.getElementById('transcriptPanel');
+var transcriptArea  = document.getElementById('transcriptArea');
+var iconMic     = document.getElementById('iconMic');
+var iconStop    = document.getElementById('iconStop');
+var burst       = document.getElementById('burst');
+var burstText   = document.getElementById('burstText');
+var xpFill      = document.getElementById('xpFill');
+var xpNum       = document.getElementById('xpNum');
+var toastEl     = document.getElementById('toast');
+var recStatus   = document.getElementById('recStatus');
+var speakerCount= document.getElementById('speakerCount');
+
+var statRecordings = document.getElementById('statRecordings');
+var statSpeakers   = document.getElementById('statSpeakers');
+var statWords      = document.getElementById('statWords');
+
+var apiKey   = localStorage.getItem('vn_api_key') || '';
+var xp       = parseInt(localStorage.getItem('vn_xp') || '0');
+var totalRec = parseInt(localStorage.getItem('vn_recordings') || '0');
+var totalWords = parseInt(localStorage.getItem('vn_words') || '0');
+var recording  = false;
+var active     = false;
+var stream     = null;
+var recognition= null;
+var rawText    = '';
+var timerInt   = null;
+var seconds    = 0;
+var chunks     = [];
+
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+// Init UI
+if (apiKey) apiInput.value = apiKey;
+updateXP(0);
+statRecordings.textContent = totalRec;
+statWords.textContent = totalWords;
+checkBadges();
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(function(){ toastEl.classList.remove('show'); }, 2500);
+}
+
+function setStatus(msg, color) {
+  statusBubble.innerHTML = msg ? '<span class="status-dot"></span>' + msg : '';
+  statusBubble.style.background = color || 'var(--purple)';
+}
+
+function updateXP(gain) {
+  xp += gain;
+  localStorage.setItem('vn_xp', xp);
+  var pct = Math.min((xp % 100), 100);
+  xpFill.style.width = pct + '%';
+  xpNum.textContent = xp;
+  if (gain > 0) {
+    showToast('+' + gain + ' XP! 🎉');
+  }
+}
+
+function formatTime(s) {
+  var m = Math.floor(s/60);
+  var ss = s % 60;
+  return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+}
+
+// Settings
+btnSettings.addEventListener('click', function() {
+  var vis = apiPanelWrap.style.display !== 'none';
+  apiPanelWrap.style.display = vis ? 'none' : 'block';
+  if (!vis) apiInput.focus();
+});
+
+apiSave.addEventListener('click', function() {
+  var key = apiInput.value.trim();
+  if (!key.startsWith('sk-ant-')) { showToast('❌ Invalid key!'); return; }
+  apiKey = key;
+  localStorage.setItem('vn_api_key', key);
+  apiPanelWrap.style.display = 'none';
+  showToast('✅ KEY SAVED!');
+  updateXP(10);
+});
+
+// Speech recognition
+function startSR() {
+  if (!SR || !active) return;
+  recognition = new SR();
+  recognition.lang = 'de-DE';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = function(e) {
+    try {
+      for (var i = 0; i < e.results.length; i++) {
+        var alt = e.results[i][0];
+        var t = alt && typeof alt.transcript === 'string' ? alt.transcript.trim() : '';
+        if (t) rawText = rawText ? rawText + ' ' + t : t;
+      }
+    } catch(x) {}
+  };
+  recognition.onerror = function() {};
+  recognition.onend = function() { if (active) setTimeout(startSR, 100); };
+  try { recognition.start(); } catch(e) {}
+}
+
+// Start
+function startRecording() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(s) {
+    stream = s;
+    active = true;
+    rawText = '';
+    seconds = 0;
+    recording = true;
+
+    // UI
+    btnRecord.classList.add('recording');
+    iconMic.style.display = 'none';
+    iconStop.style.display = 'block';
+    waveform.classList.add('active');
+    burst.classList.add('active');
+    burstText.textContent = 'REC!';
+    recordLabel.textContent = 'RECORDING...';
+    recStatus.textContent = '🔴 LIVE';
+    setStatus('LISTENING...', 'var(--red)');
+
+    timerInt = setInterval(function() {
+      seconds++;
+      timer.textContent = formatTime(seconds);
+      // Change burst text for fun
+      var words = ['REC!','POW!','ZAP!','BAM!','WOW!'];
+      burstText.textContent = words[seconds % words.length];
+    }, 1000);
+
+    startSR();
+  }).catch(function() {
+    showToast('❌ MICROPHONE DENIED!');
+  });
+}
+
+// Stop
+function stopRecording() {
+  active = false;
+  recording = false;
+
+  if (recognition) { try { recognition.abort(); } catch(e) {} recognition = null; }
+  if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+  clearInterval(timerInt);
+
+  btnRecord.classList.remove('recording');
+  iconMic.style.display = 'block';
+  iconStop.style.display = 'none';
+  waveform.classList.remove('active');
+  burst.classList.remove('active');
+  recordLabel.textContent = 'TAP TO RECORD!';
+  recStatus.textContent = 'READY';
+  timer.textContent = '';
+
+  if (rawText) {
+    totalRec++;
+    localStorage.setItem('vn_recordings', totalRec);
+    statRecordings.textContent = totalRec;
+    processWithAI(rawText, seconds);
+  } else {
+    setStatus('');
+    showToast('😶 NO SPEECH DETECTED');
+  }
+}
+
+btnRecord.addEventListener('click', function() {
+  if (recording) { stopRecording(); } else { startRecording(); }
+});
+
+// AI Processing
+function processWithAI(text, duration) {
+  setStatus('AI IS THINKING...', 'var(--purple)');
+  transcriptPanel.style.display = 'block';
+  transcriptArea.innerHTML = '<div class="empty-state">⚡ PROCESSING...</div>';
+
+  if (!apiKey) {
+    renderTranscript([{ speaker: 'Speaker 1', emoji: '🦸', text: text }]);
+    setStatus('');
+    return;
+  }
+
+  var prompt = `You are analyzing a voice recording transcript. The transcript may contain multiple speakers.
+
+Transcript: "${text}"
+
+Your job:
+1. Identify different speakers based on context, topic changes, question/answer patterns, and conversational flow
+2. Clean up filler words (um, uh, ähm, halt, also, like, basically)
+3. Fix grammar and punctuation
+4. Format lists as bullet points with •
+5. Add proper punctuation to salutations (Hi Michael, → new line)
+
+Return ONLY a valid JSON array, no other text:
+[
+  {"speaker": "Speaker 1", "text": "cleaned text here"},
+  {"speaker": "Speaker 2", "text": "their response here"},
+  ...
+]
+
+If only one speaker is detectable, return a single item array.
+Assign consistent speaker numbers throughout (Speaker 1, Speaker 2, etc.)`;
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var raw = data.content && data.content[0] && data.content[0].text;
+    if (!raw) throw new Error('No response');
+
+    // Parse JSON
+    var clean = raw.replace(/```json|```/g, '').trim();
+    var parsed = JSON.parse(clean);
+
+    var emojis = ['🦸','🦹','🧙','🦊','🐱','🦁','🐸','🤖'];
+    parsed.forEach(function(item, i) {
+      item.emoji = emojis[i % emojis.length];
+    });
+
+    renderTranscript(parsed);
+
+    // XP + stats
+    var wordCount = text.split(' ').length;
+    totalWords += wordCount;
+    localStorage.setItem('vn_words', totalWords);
+    statWords.textContent = totalWords;
+
+    var uniqueSpeakers = [...new Set(parsed.map(function(p){return p.speaker}))].length;
+    statSpeakers.textContent = uniqueSpeakers;
+    speakerCount.textContent = uniqueSpeakers + ' SPEAKER' + (uniqueSpeakers > 1 ? 'S' : '');
+
+    updateXP(Math.floor(wordCount / 5) + uniqueSpeakers * 10 + 5);
+    checkBadges(uniqueSpeakers, wordCount);
+    setStatus('DONE! ' + uniqueSpeakers + ' SPEAKER' + (uniqueSpeakers>1?'S':'') + ' DETECTED ✓', 'var(--green)');
+  })
+  .catch(function(err) {
+    // Fallback: show raw text as single speaker
+    renderTranscript([{ speaker: 'Speaker 1', emoji: '🦸', text: text }]);
+    setStatus('AI ERROR — SHOWING RAW', 'var(--orange)');
+  });
+}
+
+var speakerColorMap = {};
+var colorIndex = 0;
+
+function getSpeakerIndex(speaker) {
+  if (speakerColorMap[speaker] === undefined) {
+    speakerColorMap[speaker] = colorIndex++;
+  }
+  return speakerColorMap[speaker];
+}
+
+function renderTranscript(items) {
+  speakerColorMap = {};
+  colorIndex = 0;
+  transcriptArea.innerHTML = '';
+
+  items.forEach(function(item, i) {
+    var idx = getSpeakerIndex(item.speaker);
+    var isRight = idx % 2 === 1;
+
+    var row = document.createElement('div');
+    row.className = 'bubble-row spk-' + (idx % 5) + (isRight ? ' right' : '');
+
+    var avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = item.emoji || '🦸';
+
+    var bubbleWrap = document.createElement('div');
+    bubbleWrap.style.display = 'flex';
+    bubbleWrap.style.flexDirection = 'column';
+    bubbleWrap.style.alignItems = isRight ? 'flex-end' : 'flex-start';
+
+    var name = document.createElement('div');
+    name.className = 'speaker-name';
+    name.textContent = item.speaker.toUpperCase();
+
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = item.text;
+
+    bubbleWrap.appendChild(name);
+    bubbleWrap.appendChild(bubble);
+
+    if (isRight) {
+      row.appendChild(bubbleWrap);
+      row.appendChild(avatar);
+    } else {
+      row.appendChild(avatar);
+      row.appendChild(bubbleWrap);
+    }
+
+    transcriptArea.appendChild(row);
+  });
+}
+
+// Badges
+function checkBadges(speakers, words) {
+  if (totalRec >= 1) unlockBadge('badge-first', 10);
+  if ((speakers || 0) >= 2) unlockBadge('badge-duo', 20);
+  if ((speakers || 0) >= 3) unlockBadge('badge-crew', 30);
+  if (totalWords >= 100) unlockBadge('badge-wordsmith', 25);
+  if (totalRec >= 5) unlockBadge('badge-pro', 50);
+}
+
+var unlockedBadges = JSON.parse(localStorage.getItem('vn_badges') || '[]');
+
+function unlockBadge(id, xpGain) {
+  if (unlockedBadges.indexOf(id) > -1) return;
+  var el = document.getElementById(id);
+  if (el) {
+    el.classList.add('unlocked');
+    unlockedBadges.push(id);
+    localStorage.setItem('vn_badges', JSON.stringify(unlockedBadges));
+    if (xpGain) setTimeout(function(){ updateXP(xpGain); }, 500);
+  }
+}
+
+// Init badges
+unlockedBadges.forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.add('unlocked');
+});
+
+// Copy
+btnCopy.addEventListener('click', function() {
+  var bubbles = transcriptArea.querySelectorAll('.bubble-row');
+  if (!bubbles.length) { showToast('❌ NOTHING TO COPY!'); return; }
+  var lines = [];
+  bubbles.forEach(function(row) {
+    var name = row.querySelector('.speaker-name');
+    var bubble = row.querySelector('.bubble');
+    if (name && bubble) lines.push(name.textContent + ':\n' + bubble.textContent);
+  });
+  navigator.clipboard.writeText(lines.join('\n\n')).then(function(){
+    showToast('📋 COPIED! POW!');
+    updateXP(2);
+  });
+});
+
+// Clear
+btnClear.addEventListener('click', function() {
+  transcriptPanel.style.display = 'none';
+  transcriptArea.innerHTML = '<div class="empty-state">YOUR CONVERSATION WILL APPEAR HERE...</div>';
+  setStatus('');
+  showToast('🗑️ CLEARED!');
+});
+</script>
+</body>
+</html>
